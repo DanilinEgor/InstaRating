@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">InstaRating</string>
+    <string name="make_collage">Make collage</string>
+    <string name="inst_nick">Username</string>
+    <string name="error">Error occurred!</string>
+    <string name="please_wait">Please, wait</string>
+    <string name="choose_photos">Select up to 9 photos</string>
+    <string name="choose_less_than_9">You can select only 9 photos</string>
+    <string name="send">Send</string>
+    <string name="email_text">See my collage from Instagram photos!</string>
+    <string name="email_subject">Instagram Photos Collage</string>
+    <string name="send_using">Send using</string>
+    <string name="unable_get_photos">Unable to get photos</string>
+    <string name="heart">"♥ "</string>
+</resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">InstaRating</string>
+    <string name="make_collage">Давай коллаж</string>
+    <string name="inst_nick">Ник в Instagramе</string>
+    <string name="error">Произошла ошибка!</string>
+    <string name="please_wait">Пожалуйста, подождите</string>
+    <string name="choose_photos">Выберите до 9 фотографий</string>
+    <string name="choose_less_than_9">Максимум можно выбрать 9 фотографий</string>
+    <string name="send">Отправить</string>
+    <string name="email_text">Посмотри на коллаж из моих фотографий!</string>
+    <string name="email_subject">Коллаж из фотографий</string>
+    <string name="send_using">Послать через</string>
+    <string name="unable_get_photos">Невозможно получить фотографии</string>
+</resources>

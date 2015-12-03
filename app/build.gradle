@@ -1,16 +1,62 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.neenbedankt.android-apt'
 
+// loads variables from a file to `project` so they can be `safeGet`-ed later
+File secretPropsFile = file('../secret.properties')
+if (secretPropsFile.exists()) {
+    Properties p = new Properties()
+    p.load(new FileInputStream(secretPropsFile))
+    p.each { name, value ->
+        safeLoad name as String, value
+    }
+}
+
+Integer getBuildVersion(defaultVersion, Boolean increment = false) {
+    File verFile = file('../version.properties')
+
+    if (!verFile.canRead())
+        verFile.createNewFile()
+
+    Properties props = new Properties()
+
+    props.load new FileInputStream(verFile)
+    String currentCodeVersion = props['VERSION_CODE']
+
+    if (currentCodeVersion == null)
+        currentCodeVersion = defaultVersion ?: android.defaultConfig.versionCode
+
+    if (increment) {
+        Integer bumpedCodeVersion = currentCodeVersion.toInteger() + 1
+        android.defaultConfig.versionCode = bumpedCodeVersion
+
+        props['VERSION_CODE'] = bumpedCodeVersion.toString()
+
+        props.store verFile.newWriter(), "Build version updated with each release build"
+        currentCodeVersion = bumpedCodeVersion
+    }
+
+    currentCodeVersion as Integer
+}
+
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.1"
+
+    signingConfigs {
+        release {
+            storeFile safeGetFile('STORE_FILE')
+            storePassword safeGet('STORE_PASSWORD')
+            keyAlias safeGet('KEY_ALIAS')
+            keyPassword safeGet('KEY_PASSWORD', safeGet('STORE_PASSWORD'))
+        }
+    }
 
     defaultConfig {
         applicationId "ru.egor_d.instarating"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 1
-        versionName "1.0"
+        versionCode getBuildVersion(1)
+        versionName "0.1"
     }
     buildTypes {
         debug {
@@ -19,10 +65,50 @@ android {
             buildConfigField("String", "redirect_uri", project.redirect_uri)
         }
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             buildConfigField("String", "client_id", project.client_id)
             buildConfigField("String", "redirect_uri", project.redirect_uri)
+
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release as Object
+            minifyEnabled false
+            zipAlignEnabled true
+
+            File releasesDir = new File(
+                    safeGet('RELEASES_PARENT_DIR', 'APKs'),
+                    safeGet('FOLDER_NAME', project.group as String)
+            )
+
+            if (!releasesDir.exists())
+                releasesDir.mkdirs()
+
+            android.applicationVariants.all { variant ->
+                variant.outputs.each { output ->
+                    if (output.name == "release") {
+                        String fileName = [
+                                defaultConfig.applicationId,
+                                project.name,
+                                defaultConfig.versionName,
+                                defaultConfig.versionCode
+                        ].join('-')
+                        output.outputFile = new File(releasesDir, fileName + '.apk')
+
+//                        if (variant.getBuildType().isMinifyEnabled()) {
+//
+//                            File mappingDir = new File(releasesDir, 'mappings')
+//                            if (!mappingDir.exists())
+//                                mappingDir.mkdirs()
+//
+//                            assemble << {
+//                                copy {
+//                                    from variant.mappingFile
+//                                    into mappingDir
+//                                    rename 'mapping.txt', "mapping-${fileName}.txt"
+//                                }
+//                            }
+//                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -49,4 +135,20 @@ dependencies {
     compile 'jp.wasabeef:recyclerview-animators:2.1.0'
     compile 'me.tatarka:auto-parcel-gson:0.1'
     apt 'me.tatarka:auto-parcel-gson-processor:0.1'
+}
+
+// attach new global property to the `project`. Will not override by default
+def safeLoad(String name, Object value, Boolean override = false) {
+    if (!hasProperty(name) || override)
+        project.set name, value
+}
+
+// returns value of requested variable or default (as a fallback)
+String safeGet(String name, String defaultValue = '') {
+    hasProperty(name) ? project[name] : defaultValue
+}
+// returns file from a path provided in properties file
+File safeGetFile(String name) {
+    String fileName = safeGet(name, null)
+    fileName != null ? file(fileName) : null
 }

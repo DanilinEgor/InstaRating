@@ -3,29 +3,36 @@
               android:layout_height="match_parent"
               android:orientation="vertical">
 
-    <FrameLayout
+    <LinearLayout
+        android:id="@+id/activity_search_login_button"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="#2e5f85"
+        android:gravity="center"
+        android:padding="16dp">
 
-        <Button
-            android:id="@+id/activity_search_login_button"
-            android:layout_width="match_parent"
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_instagram_logo_white"/>
+
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:fontFamily="sans-serif-thin"
             android:text="login"
-            android:visibility="gone"/>
-
-        <ru.egor_d.instarating.ProfileView
-            android:id="@+id/activity_search_profile_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"/>
-    </FrameLayout>
+            android:textAllCaps="true"
+            android:textColor="#fff"
+            android:textSize="24sp"/>
+    </LinearLayout>
 
     <EditText
         android:id="@+id/activity_search_edit_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/edit_text_background"
+        android:fontFamily="sans-serif"
         android:hint="@string/inst_nick"
         android:maxLines="1"
         android:padding="10dp"

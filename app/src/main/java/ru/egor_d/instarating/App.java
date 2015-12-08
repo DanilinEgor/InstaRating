@@ -2,6 +2,9 @@ package ru.egor_d.instarating;
 
 import android.app.Application;
 
+import com.crashlytics.android.Crashlytics;
+
+import io.fabric.sdk.android.Fabric;
 import ru.egor_d.instarating.di.AppComponent;
 import ru.egor_d.instarating.di.AppModule;
 import ru.egor_d.instarating.di.DaggerAppComponent;
@@ -20,6 +23,8 @@ public class App extends Application {
         component = DaggerAppComponent.builder()
                 .appModule(new AppModule(this))
                 .build();
+
+        Fabric.with(this, new Crashlytics());
     }
 
     public static App getInstance() {

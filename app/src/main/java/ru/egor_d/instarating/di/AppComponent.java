@@ -3,19 +3,20 @@ package ru.egor_d.instarating.di;
 import javax.inject.Singleton;
 
 import dagger.Component;
-import ru.egor_d.instarating.InstagramRatingPreferenceManager;
-import ru.egor_d.instarating.ProfileView;
-import ru.egor_d.instarating.activity.ProfileActivity;
 import ru.egor_d.instarating.InstagramPhotosAdapter;
+import ru.egor_d.instarating.InstagramRatingPreferenceManager;
+import ru.egor_d.instarating.ProfileFragment;
+import ru.egor_d.instarating.ProfileView;
+import ru.egor_d.instarating.SearchUserFragment;
 import ru.egor_d.instarating.activity.LoginActivity;
-import ru.egor_d.instarating.activity.SearchUserActivity;
+import ru.egor_d.instarating.activity.MainActivity;
 
 @Singleton
 @Component(modules = AppModule.class)
 public interface AppComponent {
-    void inject(ProfileActivity profileActivity);
+    void inject(ProfileFragment profileFragment);
 
-    void inject(SearchUserActivity searchUserActivity);
+    void inject(SearchUserFragment searchUserFragment);
 
     void inject(InstagramPhotosAdapter instagramPhotosAdapter);
 
@@ -24,4 +25,6 @@ public interface AppComponent {
     void inject(InstagramRatingPreferenceManager instagramRatingPreferenceManager);
 
     void inject(ProfileView profileView);
+
+    void inject(MainActivity mainActivity);
 }

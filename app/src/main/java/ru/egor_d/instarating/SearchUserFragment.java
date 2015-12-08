@@ -1,60 +1,54 @@
-package ru.egor_d.instarating.activity;
+package ru.egor_d.instarating;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jakewharton.rxbinding.widget.RxTextView;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
-import ru.egor_d.instarating.App;
-import ru.egor_d.instarating.BuildConfig;
-import ru.egor_d.instarating.DividerItemDecoration;
-import ru.egor_d.instarating.InstagramRatingPreferenceManager;
-import ru.egor_d.instarating.ProfileView;
-import ru.egor_d.instarating.R;
+import ru.egor_d.instarating.activity.LoginActivity;
+import ru.egor_d.instarating.activity.MainActivity;
 import ru.egor_d.instarating.api.IInstagramService;
 import ru.egor_d.instarating.model.InstagramResponse;
 import ru.egor_d.instarating.model.InstagramUser;
+import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 
-public class SearchUserActivity extends Activity {
-    private final static String TAG = SearchUserActivity.class.getSimpleName();
+public class SearchUserFragment extends Fragment {
+    private final static String TAG = SearchUserFragment.class.getSimpleName();
 
     @Bind(R.id.activity_search_users_list)
     RecyclerView usersList;
     @Bind(R.id.activity_search_edit_text)
     EditText mUsernameEditText;
     @Bind(R.id.activity_search_login_button)
-    Button loginButton;
-    @Bind(R.id.activity_search_profile_view)
-    ProfileView profileView;
+    View loginButton;
 
-    public final static String USER = "user";
     private CompositeSubscription mSubscriptions = new CompositeSubscription();
     private UsersAdapter adapter;
     private String token = "";
@@ -66,78 +60,86 @@ public class SearchUserActivity extends Activity {
     @Inject
     InstagramRatingPreferenceManager preferenceManager;
 
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        App.getInstance().component().inject(this);
-        setContentView(R.layout.activity_search_user);
-        ButterKnife.bind(this);
+    public View onCreateView(final LayoutInflater inflater, @Nullable final ViewGroup container, @Nullable final Bundle savedInstanceState) {
+        View view = LayoutInflater.from(getActivity()).inflate(R.layout.activity_search_user, container, false);
+        ButterKnife.bind(this, view);
         token = preferenceManager.getToken();
         if (token.isEmpty()) {
+            ((MainActivity) getActivity()).setMenuVisibility(MainActivity.MenuMode.NONE);
             loginButton.setVisibility(View.VISIBLE);
-            profileView.setVisibility(View.GONE);
         } else {
+            ((MainActivity) getActivity()).setMenuVisibility(MainActivity.MenuMode.ALL);
             loginButton.setVisibility(View.GONE);
-            profileView.setVisibility(View.VISIBLE);
-            InstagramUser me = preferenceManager.getUser();
             getMe(token);
-            if (me.username != null) {
-                profileView.bindUser(me);
-            }
         }
         adapter = new UsersAdapter();
         usersList.setAdapter(adapter);
-        usersList.setLayoutManager(new LinearLayoutManager(this));
-        usersList.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
-        mUsernameEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(final CharSequence s, final int start, final int count, final int after) {
+        usersList.setLayoutManager(new LinearLayoutManager(getActivity()));
+        usersList.addItemDecoration(new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL_LIST));
 
-            }
+        mSubscriptions.add(RxTextView.textChanges(mUsernameEditText)
+                .debounce(150, TimeUnit.MILLISECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .unsubscribeOn(Schedulers.io())
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .filter(new Func1<CharSequence, Boolean>() {
+                    @Override
+                    public Boolean call(final CharSequence charSequence) {
+                        if (charSequence.length() > 1) {
+                            return true;
+                        } else {
+                            adapter.setUsers(new ArrayList<InstagramUser>());
+                            return false;
+                        }
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .switchMap(new Func1<CharSequence, Observable<InstagramResponse<List<InstagramUser>>>>() {
+                    @Override
+                    public Observable<InstagramResponse<List<InstagramUser>>> call(final CharSequence s) {
+                        return instagramService.getUserId(s.toString().trim(),
+                                token.isEmpty() ? BuildConfig.client_id : "",
+                                token)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribeOn(Schedulers.io())
+                                .unsubscribeOn(Schedulers.io());
+                    }
+                })
+                .subscribe(new Action1<InstagramResponse<List<InstagramUser>>>() {
+                    @Override
+                    public void call(final InstagramResponse<List<InstagramUser>> listInstagramResponse) {
+                        adapter.setUsers(listInstagramResponse.data);
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(final Throwable e) {
+                        Log.e(TAG, "error: ", e);
+                        Toast.makeText(getActivity(), R.string.error, Toast.LENGTH_SHORT).show();
+                    }
+                }));
 
-            @Override
-            public void onTextChanged(final CharSequence s, final int start, final int before, final int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(final Editable s) {
-                if (s.length() > 1) {
-                    mSubscriptions.add(instagramService.getUserId(s.toString().trim(),
-                            token.isEmpty() ? BuildConfig.client_id : "",
-                            token)
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribeOn(Schedulers.io())
-                            .unsubscribeOn(Schedulers.io())
-                            .subscribe(new Action1<InstagramResponse<List<InstagramUser>>>() {
-                                @Override
-                                public void call(final InstagramResponse<List<InstagramUser>> listInstagramResponse) {
-                                    adapter.setUsers(listInstagramResponse.data);
-                                }
-                            }, new Action1<Throwable>() {
-                                @Override
-                                public void call(final Throwable e) {
-                                    Log.e(TAG, e.getMessage(), e);
-                                    Toast.makeText(SearchUserActivity.this, R.string.error, Toast.LENGTH_SHORT).show();
-                                }
-                            }));
-                } else {
-                    adapter.setUsers(new ArrayList<InstagramUser>());
-                }
-            }
-        });
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                startActivityForResult(new Intent(SearchUserActivity.this, LoginActivity.class), 1);
+                startActivityForResult(new Intent(getActivity(), LoginActivity.class), 1);
             }
         });
+        return view;
     }
 
     @Override
-    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        App.getInstance().component().inject(this);
+    }
+
+    @Override
+    public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         token = preferenceManager.getToken();
         if (!token.isEmpty()) {
+            ((MainActivity) getActivity()).setMenuVisibility(MainActivity.MenuMode.ALL);
             loginButton.setVisibility(View.GONE);
             getMe(token);
         }
@@ -158,8 +160,6 @@ public class SearchUserActivity extends Activity {
                     @Override
                     public void call(final InstagramUser instagramUser) {
                         preferenceManager.saveUser(instagramUser);
-                        profileView.setVisibility(View.VISIBLE);
-                        profileView.bindUser(instagramUser);
                     }
                 }, new Action1<Throwable>() {
                     @Override
@@ -170,9 +170,9 @@ public class SearchUserActivity extends Activity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mSubscriptions.unsubscribe();
+    public void onStop() {
+        super.onStop();
+        mSubscriptions.clear();
     }
 
     protected class VH extends RecyclerView.ViewHolder {
@@ -217,9 +217,9 @@ public class SearchUserActivity extends Activity {
             holder.root.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(final View v) {
-                    Intent intent = new Intent(SearchUserActivity.this, ProfileActivity.class);
-                    intent.putExtra(USER, user);
-                    startActivity(intent);
+                    ((MainActivity) getActivity()).setFragmentWithBackStack(
+                            new ProfileFragmentBuilder().user(user).build()
+                    );
                 }
             });
         }

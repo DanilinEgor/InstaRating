@@ -11,3 +11,4 @@ signing.properties
 version.properties
 *.jks
 *.apk
+/app/fabric.properties

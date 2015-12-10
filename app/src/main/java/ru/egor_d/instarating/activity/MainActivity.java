@@ -1,9 +1,9 @@
 package ru.egor_d.instarating.activity;
 
+import android.app.Activity;
+import android.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import javax.inject.Inject;
@@ -12,18 +12,25 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import ru.egor_d.instarating.App;
 import ru.egor_d.instarating.InstagramRatingPreferenceManager;
-import ru.egor_d.instarating.ProfileFragmentBuilder;
 import ru.egor_d.instarating.R;
-import ru.egor_d.instarating.SearchUserFragment;
+import ru.egor_d.instarating.fragment.ProfileFragmentBuilder;
+import ru.egor_d.instarating.fragment.SearchUserFragment;
+import ru.egor_d.instarating.fragment.SettingsFragment;
 import ru.egor_d.instarating.model.InstagramUser;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
     @Bind(R.id.activity_main_menu_home)
     View menuHome;
     @Bind(R.id.activity_main_menu_search)
     View menuSearch;
-    @Bind(R.id.activity_main_menu_logout)
-    View menuLogout;
+    @Bind(R.id.activity_main_menu_settings)
+    View menuSettings;
+    @Bind(R.id.activity_main_menu_home_delimiter)
+    View menuHomeDelimiter;
+    @Bind(R.id.activity_main_menu_search_delimiter)
+    View menuSearchDelimiter;
+    @Bind(R.id.activity_main_menu_settings_delimiter)
+    View menuSettingsDelimiter;
     @Bind(R.id.activity_main_menu_ll)
     View menu;
 
@@ -42,7 +49,9 @@ public class MainActivity extends AppCompatActivity {
         token = preferenceManager.getToken();
         setMenuVisibility(!token.isEmpty() ? MenuMode.ALL : MenuMode.NONE);
 
-        setFragment(new SearchUserFragment());
+        menuHomeDelimiter.setVisibility(View.VISIBLE);
+        menuSearchDelimiter.setVisibility(View.GONE);
+        menuSettingsDelimiter.setVisibility(View.VISIBLE);
 
         menuHome.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -53,35 +62,44 @@ public class MainActivity extends AppCompatActivity {
                     builder.user(user);
                 }
                 setFragment(builder.build());
+                menuHomeDelimiter.setVisibility(View.GONE);
+                menuSearchDelimiter.setVisibility(View.VISIBLE);
+                menuSettingsDelimiter.setVisibility(View.VISIBLE);
             }
         });
         menuSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
                 setFragment(new SearchUserFragment());
+                menuHomeDelimiter.setVisibility(View.VISIBLE);
+                menuSearchDelimiter.setVisibility(View.GONE);
+                menuSettingsDelimiter.setVisibility(View.VISIBLE);
             }
         });
-        menuLogout.setOnClickListener(new View.OnClickListener() {
+        menuSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                preferenceManager.saveToken("");
-                preferenceManager.saveUser(null);
-                setFragment(new SearchUserFragment());
+                setFragment(new SettingsFragment());
+                menuHomeDelimiter.setVisibility(View.VISIBLE);
+                menuSearchDelimiter.setVisibility(View.VISIBLE);
+                menuSettingsDelimiter.setVisibility(View.GONE);
             }
         });
+
+        setFragment(new SearchUserFragment());
     }
 
     public void setFragment(Fragment fragment) {
-        while (getSupportFragmentManager().popBackStackImmediate()) ;
-        getSupportFragmentManager()
+        while (getFragmentManager().popBackStackImmediate()) ;
+        getFragmentManager()
                 .beginTransaction()
                 .replace(R.id.activity_main_container, fragment)
                 .commit();
     }
 
     public void setFragmentWithBackStack(Fragment fragment) {
-        while (getSupportFragmentManager().popBackStackImmediate()) ;
-        getSupportFragmentManager()
+        while (getFragmentManager().popBackStackImmediate()) ;
+        getFragmentManager()
                 .beginTransaction()
                 .replace(R.id.activity_main_container, fragment)
                 .addToBackStack(null)
@@ -95,14 +113,16 @@ public class MainActivity extends AppCompatActivity {
     public void setMenuVisibility(MenuMode mode) {
         switch (mode) {
             case ALL:
-                menuHome.setVisibility(View.VISIBLE);
-                menuLogout.setVisibility(View.VISIBLE);
-                menuSearch.setVisibility(View.VISIBLE);
+                menu.setVisibility(View.VISIBLE);
+//                menuHome.setVisibility(View.VISIBLE);
+//                menuSettings.setVisibility(View.VISIBLE);
+//                menuSearch.setVisibility(View.VISIBLE);
                 break;
             case NONE:
-                menuHome.setVisibility(View.GONE);
-                menuLogout.setVisibility(View.GONE);
-                menuSearch.setVisibility(View.GONE);
+                menu.setVisibility(View.GONE);
+//                menuHome.setVisibility(View.GONE);
+//                menuSettings.setVisibility(View.GONE);
+//                menuSearch.setVisibility(View.GONE);
         }
     }
 }

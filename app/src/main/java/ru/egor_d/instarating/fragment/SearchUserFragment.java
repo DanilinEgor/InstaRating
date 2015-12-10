@@ -1,9 +1,9 @@
-package ru.egor_d.instarating;
+package ru.egor_d.instarating.fragment;
 
+import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -27,6 +27,11 @@ import javax.inject.Inject;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import ru.egor_d.instarating.App;
+import ru.egor_d.instarating.BuildConfig;
+import ru.egor_d.instarating.DividerItemDecoration;
+import ru.egor_d.instarating.InstagramRatingPreferenceManager;
+import ru.egor_d.instarating.R;
 import ru.egor_d.instarating.activity.LoginActivity;
 import ru.egor_d.instarating.activity.MainActivity;
 import ru.egor_d.instarating.api.IInstagramService;

@@ -1,8 +1,8 @@
-package ru.egor_d.instarating;
+package ru.egor_d.instarating.fragment;
 
+import android.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -24,6 +24,12 @@ import javax.inject.Inject;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import jp.wasabeef.recyclerview.animators.LandingAnimator;
+import ru.egor_d.instarating.App;
+import ru.egor_d.instarating.BuildConfig;
+import ru.egor_d.instarating.InstagramPhotosAdapter;
+import ru.egor_d.instarating.InstagramRatingPreferenceManager;
+import ru.egor_d.instarating.ProfileView;
+import ru.egor_d.instarating.R;
 import ru.egor_d.instarating.activity.MainActivity;
 import ru.egor_d.instarating.api.IInstagramService;
 import ru.egor_d.instarating.model.InstagramMedia;

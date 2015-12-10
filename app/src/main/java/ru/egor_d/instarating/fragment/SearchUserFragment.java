@@ -68,7 +68,7 @@ public class SearchUserFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(final LayoutInflater inflater, @Nullable final ViewGroup container, @Nullable final Bundle savedInstanceState) {
-        View view = LayoutInflater.from(getActivity()).inflate(R.layout.activity_search_user, container, false);
+        View view = LayoutInflater.from(getActivity()).inflate(R.layout.fragment_search_user, container, false);
         ButterKnife.bind(this, view);
         token = preferenceManager.getToken();
         if (token.isEmpty()) {

@@ -5,4 +5,12 @@
     <string name="error">Error occurred!</string>
     <string name="please_wait">Please, wait</string>
     <string name="heart">"♥ "</string>
+
+    <string name="font">sans-serif</string>
+    <string name="font_thin">sans-serif-thin</string>
+    <string name="font_light">sans-serif-light</string>
+    <string name="logout">Logout</string>
+    <string name="rate_app">Rate app</string>
+    <string name="share">share</string>
+    <string name="settings">Settings</string>
 </resources>

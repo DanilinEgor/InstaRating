@@ -20,11 +20,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="8dp"
-            android:fontFamily="sans-serif-thin"
+            android:fontFamily="@string/font_light"
             android:text="login"
             android:textAllCaps="true"
             android:textColor="#fff"
-            android:textSize="24sp"/>
+            android:textSize="24dp"/>
     </LinearLayout>
 
     <EditText
@@ -32,7 +32,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/edit_text_background"
-        android:fontFamily="sans-serif"
+        android:fontFamily="@string/font_light"
         android:hint="@string/inst_nick"
         android:maxLines="1"
         android:padding="10dp"

@@ -14,8 +14,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="21dp"
-            android:fontFamily="sans-serif-thin"
-            android:text="Settings"
+            android:fontFamily="@string/font_light"
+            android:text="@string/settings"
             android:textAllCaps="true"
             android:textColor="#000"
             android:textSize="26dp"/>
@@ -42,8 +42,8 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-thin"
-            android:text="Share"
+            android:fontFamily="@string/font_light"
+            android:text="@string/share"
             android:textAllCaps="true"
             android:textColor="#000"
             android:textSize="20dp"/>
@@ -70,8 +70,8 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-thin"
-            android:text="Rate app"
+            android:fontFamily="@string/font_light"
+            android:text="@string/rate_app"
             android:textAllCaps="true"
             android:textColor="#000"
             android:textSize="20dp"/>
@@ -98,8 +98,8 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-thin"
-            android:text="logout"
+            android:fontFamily="@string/font_light"
+            android:text="@string/logout"
             android:textAllCaps="true"
             android:textColor="#000"
             android:textSize="20dp"/>

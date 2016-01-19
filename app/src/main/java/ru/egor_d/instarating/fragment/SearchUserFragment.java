@@ -1,9 +1,8 @@
 package ru.egor_d.instarating.fragment;
 
-import android.app.Fragment;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -32,7 +31,6 @@ import ru.egor_d.instarating.BuildConfig;
 import ru.egor_d.instarating.DividerItemDecoration;
 import ru.egor_d.instarating.InstagramRatingPreferenceManager;
 import ru.egor_d.instarating.R;
-import ru.egor_d.instarating.activity.LoginActivity;
 import ru.egor_d.instarating.activity.MainActivity;
 import ru.egor_d.instarating.api.IInstagramService;
 import ru.egor_d.instarating.model.InstagramResponse;
@@ -51,8 +49,6 @@ public class SearchUserFragment extends Fragment {
     RecyclerView usersList;
     @Bind(R.id.activity_search_edit_text)
     EditText mUsernameEditText;
-    @Bind(R.id.activity_search_login_button)
-    View loginButton;
 
     private CompositeSubscription mSubscriptions = new CompositeSubscription();
     private UsersAdapter adapter;
@@ -71,14 +67,6 @@ public class SearchUserFragment extends Fragment {
         View view = LayoutInflater.from(getActivity()).inflate(R.layout.fragment_search_user, container, false);
         ButterKnife.bind(this, view);
         token = preferenceManager.getToken();
-        if (token.isEmpty()) {
-            ((MainActivity) getActivity()).setMenuVisibility(MainActivity.MenuMode.NONE);
-            loginButton.setVisibility(View.VISIBLE);
-        } else {
-            ((MainActivity) getActivity()).setMenuVisibility(MainActivity.MenuMode.ALL);
-            loginButton.setVisibility(View.GONE);
-            getMe(token);
-        }
         adapter = new UsersAdapter();
         usersList.setAdapter(adapter);
         usersList.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -124,13 +112,6 @@ public class SearchUserFragment extends Fragment {
                         Toast.makeText(getActivity(), R.string.error, Toast.LENGTH_SHORT).show();
                     }
                 }));
-
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                startActivityForResult(new Intent(getActivity(), LoginActivity.class), 1);
-            }
-        });
         return view;
     }
 
@@ -138,40 +119,6 @@ public class SearchUserFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         App.getInstance().component().inject(this);
-    }
-
-    @Override
-    public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-        token = preferenceManager.getToken();
-        if (!token.isEmpty()) {
-            ((MainActivity) getActivity()).setMenuVisibility(MainActivity.MenuMode.ALL);
-            loginButton.setVisibility(View.GONE);
-            getMe(token);
-        }
-    }
-
-    private void getMe(final String token) {
-        mSubscriptions.add(instagramService.getMe(token)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
-                .map(new Func1<InstagramResponse<InstagramUser>, InstagramUser>() {
-                    @Override
-                    public InstagramUser call(final InstagramResponse<InstagramUser> instagramUserInstagramResponse) {
-                        return instagramUserInstagramResponse.data;
-                    }
-                })
-                .subscribe(new Action1<InstagramUser>() {
-                    @Override
-                    public void call(final InstagramUser instagramUser) {
-                        preferenceManager.saveUser(instagramUser);
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(final Throwable throwable) {
-                        Log.e(TAG, "error: ", throwable);
-                    }
-                }));
     }
 
     @Override
@@ -222,7 +169,7 @@ public class SearchUserFragment extends Fragment {
             holder.root.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(final View v) {
-                    ((MainActivity) getActivity()).setFragmentWithBackStack(
+                    ((MainActivity) getActivity()).setFragment(
                             new ProfileFragmentBuilder().user(user).build()
                     );
                 }

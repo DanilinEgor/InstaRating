@@ -3,30 +3,6 @@
               android:layout_height="match_parent"
               android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/activity_search_login_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#2e5f85"
-        android:gravity="center"
-        android:padding="16dp">
-
-        <ImageView
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@drawable/ic_instagram_logo_white"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
-            android:fontFamily="@string/font_light"
-            android:text="login"
-            android:textAllCaps="true"
-            android:textColor="#fff"
-            android:textSize="24dp"/>
-    </LinearLayout>
-
     <EditText
         android:id="@+id/activity_search_edit_text"
         android:layout_width="match_parent"

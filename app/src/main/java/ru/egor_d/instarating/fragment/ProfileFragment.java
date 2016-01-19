@@ -1,8 +1,8 @@
 package ru.egor_d.instarating.fragment;
 
-import android.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -30,7 +30,6 @@ import ru.egor_d.instarating.InstagramPhotosAdapter;
 import ru.egor_d.instarating.InstagramRatingPreferenceManager;
 import ru.egor_d.instarating.ProfileView;
 import ru.egor_d.instarating.R;
-import ru.egor_d.instarating.activity.MainActivity;
 import ru.egor_d.instarating.api.IInstagramService;
 import ru.egor_d.instarating.model.InstagramMedia;
 import ru.egor_d.instarating.model.InstagramPhoto;
@@ -52,12 +51,12 @@ public class ProfileFragment extends Fragment {
     RecyclerView mRecyclerView;
     @Bind(R.id.activity_choose_progress_bar)
     ProgressBar mProgressBar;
-    @Bind(R.id.activity_choose_profile_view)
-    ProfileView profileView;
     @Bind(R.id.activity_choose_cancel)
     View cancelButton;
     @Bind(R.id.activity_choose_progress_ll)
     View progressLL;
+    @Bind(R.id.activity_choose_profile_view)
+    ProfileView mProfileView;
 
     private final static String TAG = ProfileFragment.class.getSimpleName();
 
@@ -86,9 +85,41 @@ public class ProfileFragment extends Fragment {
 
         token = preferenceManager.getToken();
         if (token.isEmpty()) {
-            ((MainActivity) getActivity()).setMenuVisibility(MainActivity.MenuMode.NONE);
+            mProfileView.setVisibility(View.GONE);
         } else {
-            ((MainActivity) getActivity()).setMenuVisibility(MainActivity.MenuMode.ALL);
+            mProfileView.setVisibility(View.VISIBLE);
+
+            if (user == null) {
+                // opened my profile before me is loaded
+                getMe();
+            } else {
+                mProfileView.bindUser(user);
+                mSubscriptions.add(
+                        instagramService
+                                .getUser(user.id, token)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribeOn(Schedulers.io())
+                                .unsubscribeOn(Schedulers.io())
+                                .map(new Func1<InstagramResponse<InstagramUser>, InstagramUser>() {
+                                    @Override
+                                    public InstagramUser call(final InstagramResponse<InstagramUser> instagramUserInstagramResponse) {
+                                        return instagramUserInstagramResponse.data;
+                                    }
+                                })
+                                .subscribe(new Action1<InstagramUser>() {
+                                    @Override
+                                    public void call(final InstagramUser instagramUser) {
+                                        mProfileView.bindUser(instagramUser);
+                                    }
+                                }, new Action1<Throwable>() {
+                                    @Override
+                                    public void call(final Throwable throwable) {
+                                        Log.e(TAG, "error:", throwable);
+                                    }
+                                })
+                );
+                mSubscriptions.add(getPhotosSubscription(""));
+            }
         }
 
         RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(getActivity(), 2);
@@ -99,64 +130,6 @@ public class ProfileFragment extends Fragment {
 
         mRecyclerView.setItemAnimator(new LandingAnimator());
 
-        if (user == null) {
-            // opened my profile before me is loaded
-            mSubscriptions.add(
-                    instagramService
-                            .getMe(token)
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribeOn(Schedulers.io())
-                            .unsubscribeOn(Schedulers.io())
-                            .map(new Func1<InstagramResponse<InstagramUser>, InstagramUser>() {
-                                @Override
-                                public InstagramUser call(final InstagramResponse<InstagramUser> instagramUserInstagramResponse) {
-                                    return instagramUserInstagramResponse.data;
-                                }
-                            })
-                            .subscribe(new Action1<InstagramUser>() {
-                                @Override
-                                public void call(final InstagramUser instagramUser) {
-                                    preferenceManager.saveUser(instagramUser);
-                                    user = instagramUser;
-                                    profileView.bindUser(instagramUser);
-                                    mSubscriptions.add(getPhotosSubscription(""));
-                                }
-                            }, new Action1<Throwable>() {
-                                @Override
-                                public void call(final Throwable throwable) {
-                                    Log.e(TAG, "error:", throwable);
-                                }
-                            })
-            );
-        } else {
-            profileView.bindUser(user);
-            mSubscriptions.add(
-                    instagramService
-                            .getUser(user.id, token)
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribeOn(Schedulers.io())
-                            .unsubscribeOn(Schedulers.io())
-                            .map(new Func1<InstagramResponse<InstagramUser>, InstagramUser>() {
-                                @Override
-                                public InstagramUser call(final InstagramResponse<InstagramUser> instagramUserInstagramResponse) {
-                                    return instagramUserInstagramResponse.data;
-                                }
-                            })
-                            .subscribe(new Action1<InstagramUser>() {
-                                @Override
-                                public void call(final InstagramUser instagramUser) {
-                                    profileView.bindUser(instagramUser);
-                                }
-                            }, new Action1<Throwable>() {
-                                @Override
-                                public void call(final Throwable throwable) {
-                                    Log.e(TAG, "error:", throwable);
-                                }
-                            })
-            );
-            mSubscriptions.add(getPhotosSubscription(""));
-        }
-
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
@@ -164,7 +137,36 @@ public class ProfileFragment extends Fragment {
                 progressLL.setVisibility(View.GONE);
             }
         });
+
         return view;
+    }
+
+    private void getMe() {
+        mSubscriptions.add(instagramService
+                .getMe(token)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .map(new Func1<InstagramResponse<InstagramUser>, InstagramUser>() {
+                    @Override
+                    public InstagramUser call(final InstagramResponse<InstagramUser> instagramUserInstagramResponse) {
+                        return instagramUserInstagramResponse.data;
+                    }
+                })
+                .subscribe(new Action1<InstagramUser>() {
+                    @Override
+                    public void call(final InstagramUser instagramUser) {
+                        preferenceManager.saveUser(instagramUser);
+                        user = instagramUser;
+                        mProfileView.bindUser(instagramUser);
+                        mSubscriptions.add(getPhotosSubscription(""));
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(final Throwable throwable) {
+                        Log.e(TAG, "error:", throwable);
+                    }
+                }));
     }
 
     private Subscription getPhotosSubscription(String maxId) {

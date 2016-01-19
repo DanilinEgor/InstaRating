@@ -20,8 +20,8 @@ import ru.egor_d.instarating.model.InstagramUser;
 public class ProfileView extends LinearLayout {
     @Bind(R.id.profile_view_avatar)
     ImageView avatar;
-    @Bind(R.id.profile_view_username)
-    TextView username;
+//    @Bind(R.id.profile_view_username)
+//    TextView username;
     @Bind(R.id.profile_view_posts_count)
     TextView postsCount;
     @Bind(R.id.profile_view_followers_count)
@@ -33,23 +33,31 @@ public class ProfileView extends LinearLayout {
 
     public ProfileView(final Context context) {
         super(context);
-        init();
+        if (!isInEditMode()) {
+            init();
+        }
     }
 
     public ProfileView(final Context context, final AttributeSet attrs) {
         super(context, attrs);
-        init();
+        if (!isInEditMode()) {
+            init();
+        }
     }
 
     public ProfileView(final Context context, final AttributeSet attrs, final int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init();
+        if (!isInEditMode()) {
+            init();
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public ProfileView(final Context context, final AttributeSet attrs, final int defStyleAttr, final int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
-        init();
+        if (!isInEditMode()) {
+            init();
+        }
     }
 
     private void init() {
@@ -60,7 +68,7 @@ public class ProfileView extends LinearLayout {
 
     public void bindUser(final InstagramUser user) {
         picasso.load(user.profile_picture).transform(new CropCircleTransformation()).into(avatar);
-        username.setText(user.username);
+//        username.setText(user.username);
         if (user.counts != null) {
             postsCount.setText(String.valueOf(user.counts.media));
             followersCount.setText(String.valueOf(user.counts.followed_by));

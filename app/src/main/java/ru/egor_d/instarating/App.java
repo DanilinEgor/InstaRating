@@ -1,6 +1,7 @@
 package ru.egor_d.instarating;
 
 import android.app.Application;
+import android.os.StrictMode;
 
 import com.crashlytics.android.Crashlytics;
 
@@ -25,6 +26,18 @@ public class App extends Application {
                 .build();
 
         Fabric.with(this, new Crashlytics());
+
+        if (BuildConfig.DEBUG) {
+            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                    .detectAll()
+                    .penaltyLog()
+                    .build());
+            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                    .detectAll()
+                    .penaltyLog()
+                    .penaltyDeathOnNetwork()
+                    .build());
+        }
     }
 
     public static App getInstance() {

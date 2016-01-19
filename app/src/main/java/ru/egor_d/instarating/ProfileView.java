@@ -20,14 +20,10 @@ import ru.egor_d.instarating.model.InstagramUser;
 public class ProfileView extends LinearLayout {
     @Bind(R.id.profile_view_avatar)
     ImageView avatar;
-//    @Bind(R.id.profile_view_username)
-//    TextView username;
+    @Bind(R.id.profile_view_username)
+    TextView username;
     @Bind(R.id.profile_view_posts_count)
     TextView postsCount;
-    @Bind(R.id.profile_view_followers_count)
-    TextView followersCount;
-    @Bind(R.id.profile_view_following_count)
-    TextView followingCount;
     @Inject
     Picasso picasso;
 
@@ -68,15 +64,11 @@ public class ProfileView extends LinearLayout {
 
     public void bindUser(final InstagramUser user) {
         picasso.load(user.profile_picture).transform(new CropCircleTransformation()).into(avatar);
-//        username.setText(user.username);
+        username.setText(user.username);
         if (user.counts != null) {
             postsCount.setText(String.valueOf(user.counts.media));
-            followersCount.setText(String.valueOf(user.counts.followed_by));
-            followingCount.setText(String.valueOf(user.counts.follows));
         } else {
             postsCount.setText("-");
-            followersCount.setText("-");
-            followingCount.setText("-");
         }
     }
 }

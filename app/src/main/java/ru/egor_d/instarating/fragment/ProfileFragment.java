@@ -84,42 +84,38 @@ public class ProfileFragment extends Fragment {
         ButterKnife.bind(this, view);
 
         token = preferenceManager.getToken();
-        if (token.isEmpty()) {
-            mProfileView.setVisibility(View.GONE);
-        } else {
-            mProfileView.setVisibility(View.VISIBLE);
+        mProfileView.setVisibility(View.VISIBLE);
 
-            if (user == null) {
-                // opened my profile before me is loaded
-                getMe();
-            } else {
-                mProfileView.bindUser(user);
-                mSubscriptions.add(
-                        instagramService
-                                .getUser(user.id, token)
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribeOn(Schedulers.io())
-                                .unsubscribeOn(Schedulers.io())
-                                .map(new Func1<InstagramResponse<InstagramUser>, InstagramUser>() {
-                                    @Override
-                                    public InstagramUser call(final InstagramResponse<InstagramUser> instagramUserInstagramResponse) {
-                                        return instagramUserInstagramResponse.data;
-                                    }
-                                })
-                                .subscribe(new Action1<InstagramUser>() {
-                                    @Override
-                                    public void call(final InstagramUser instagramUser) {
-                                        mProfileView.bindUser(instagramUser);
-                                    }
-                                }, new Action1<Throwable>() {
-                                    @Override
-                                    public void call(final Throwable throwable) {
-                                        Log.e(TAG, "error:", throwable);
-                                    }
-                                })
-                );
-                mSubscriptions.add(getPhotosSubscription(""));
-            }
+        if (user == null) {
+            // opened my profile before me is loaded
+            getMe();
+        } else {
+            mProfileView.bindUser(user);
+            mSubscriptions.add(
+                    instagramService
+                            .getUser(user.id, token) // TODO: если токен пустой, то пихать client_id
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribeOn(Schedulers.io())
+                            .unsubscribeOn(Schedulers.io())
+                            .map(new Func1<InstagramResponse<InstagramUser>, InstagramUser>() {
+                                @Override
+                                public InstagramUser call(final InstagramResponse<InstagramUser> instagramUserInstagramResponse) {
+                                    return instagramUserInstagramResponse.data;
+                                }
+                            })
+                            .subscribe(new Action1<InstagramUser>() {
+                                @Override
+                                public void call(final InstagramUser instagramUser) {
+                                    mProfileView.bindUser(instagramUser);
+                                }
+                            }, new Action1<Throwable>() {
+                                @Override
+                                public void call(final Throwable throwable) {
+                                    Log.e(TAG, "error:", throwable);
+                                }
+                            })
+            );
+            mSubscriptions.add(getPhotosSubscription(""));
         }
 
         RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(getActivity(), 2);

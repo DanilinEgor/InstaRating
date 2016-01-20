@@ -1,10 +1,8 @@
-machine:
+dependencies:
   pre:
     - echo client_id=$CLIENT_ID > secret.properties
     - echo redirect_uri=$REDIRECT_URI >> secret.properties
     - echo apiSecret=$FABRIC_API_SECRET > app/fabric.properties
     - echo apiKey=$FABRIC_API_KEY >> app/fabric.properties
-dependencies:
-  pre:
     - echo y | android update sdk --no-ui --all --filter "tools"
     - echo y | android update sdk --no-ui --all --filter "build-tools-23.0.2"

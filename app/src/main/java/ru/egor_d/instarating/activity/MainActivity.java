@@ -13,8 +13,12 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 import javax.inject.Inject;
 
@@ -26,6 +30,13 @@ import ru.egor_d.instarating.R;
 import ru.egor_d.instarating.api.IInstagramService;
 import ru.egor_d.instarating.fragment.ProfileFragmentBuilder;
 import ru.egor_d.instarating.fragment.SearchUserFragment;
+import ru.egor_d.instarating.model.InstagramResponse;
+import ru.egor_d.instarating.model.InstagramUser;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.functions.Func1;
+import rx.schedulers.Schedulers;
+import rx.subscriptions.CompositeSubscription;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -39,14 +50,16 @@ public class MainActivity extends AppCompatActivity
     NavigationView navigationView;
     @Bind(R.id.drawer_layout)
     DrawerLayout drawerLayout;
-    ImageView avatar;
 
     @Inject
     InstagramRatingPreferenceManager preferenceManager;
     @Inject
     IInstagramService instagramService;
+    @Inject
+    Picasso picasso;
 
     String token = "";
+    private CompositeSubscription mSubscriptions = new CompositeSubscription();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,15 +76,82 @@ public class MainActivity extends AppCompatActivity
         toggle.syncState();
 
         navigationView.setNavigationItemSelectedListener(this);
-        navigationView.getMenu().clear();
-        navigationView.inflateMenu(R.menu.menu_activity_main_drawer_not_logged);
-        avatar = (ImageView) navigationView.getHeaderView(0).findViewById(R.id.avatar);
-        avatar.setImageResource(R.drawable.tw__ic_logo_default);
-
-        mToolbar.setTitle("");
 
         token = preferenceManager.getToken();
-        setFragment(new ProfileFragmentBuilder().build());
+
+        refreshNavigationView();
+
+        if (token.isEmpty()) {
+            setFragment(new SearchUserFragment());
+            navigationView.getMenu().getItem(1).setChecked(true);
+        } else {
+            setFragment(new ProfileFragmentBuilder().build());
+            navigationView.getMenu().getItem(0).setChecked(true);
+        }
+    }
+
+    private void refreshNavigationView() {
+        token = preferenceManager.getToken();
+        refreshMenu();
+        if (token.isEmpty()) {
+            bindUser(null);
+        } else {
+            getMe();
+        }
+    }
+
+    private void refreshMenu() {
+        navigationView.getMenu().clear();
+        if (token.isEmpty()) {
+            navigationView.inflateMenu(R.menu.menu_activity_main_drawer_not_logged);
+        } else {
+            navigationView.inflateMenu(R.menu.menu_activity_main_drawer_logged);
+        }
+    }
+
+    public void bindUser(InstagramUser user) {
+        ImageView avatar = (ImageView) navigationView.getHeaderView(0).findViewById(R.id.nav_header_avatar);
+        TextView username = (TextView) navigationView.getHeaderView(0).findViewById(R.id.nav_header_username);
+        if (user != null) {
+            picasso.load(user.profile_picture).into(avatar);
+            username.setText(user.username);
+        } else {
+            avatar.setImageDrawable(null);
+            username.setText(R.string.app_name);
+        }
+    }
+
+    // TODO: вынести в другой слой
+    private void getMe() {
+        mSubscriptions.add(instagramService
+                .getMe(token)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .map(new Func1<InstagramResponse<InstagramUser>, InstagramUser>() {
+                    @Override
+                    public InstagramUser call(final InstagramResponse<InstagramUser> instagramUserInstagramResponse) {
+                        return instagramUserInstagramResponse.data;
+                    }
+                })
+                .subscribe(new Action1<InstagramUser>() {
+                    @Override
+                    public void call(final InstagramUser instagramUser) {
+                        instagramUser.profile_picture = instagramUser.profile_picture.replace("s150x150", "s200x200");
+                        bindUser(instagramUser);
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(final Throwable throwable) {
+                        Log.e(TAG, "error:", throwable);
+                    }
+                }));
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mSubscriptions.clear();
     }
 
     @Override
@@ -84,45 +164,15 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    /*
-    <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/nav_camera"
-            android:icon="@drawable/ic_action_home"
-            android:title="Profile"/>
-        <item
-            android:id="@+id/nav_gallery"
-            android:icon="@drawable/ic_action_search"
-            android:title="Search"/>
-        <!--<item-->
-        <!--android:id="@+id/nav_manage"-->
-        <!--android:icon="@drawable/ic_menu_manage"-->
-        <!--android:title="Tools"/>-->
-    </group>
-    <item>
-        <menu>
-            <item
-                android:id="@+id/nav_share"
-                android:icon="@drawable/ic_menu_share"
-                android:title="Share"/>
-            <item
-                android:id="@+id/nav_send"
-                android:icon="@drawable/ic_action_grade"
-                android:title="Rate"/>
-            <item
-                android:id="@+id/nav_logout"
-                android:icon="@drawable/ic_action_exit"
-                android:title="Logout"/>
-        </menu>
-    </item>
-     */
-
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
 
         switch (id) {
+            case R.id.nav_login:
+                startActivityForResult(new Intent(this, LoginActivity.class), 1);
+                break;
             case R.id.nav_profile:
                 setFragment(new ProfileFragmentBuilder().build());
                 break;
@@ -150,6 +200,7 @@ public class MainActivity extends AppCompatActivity
             case R.id.nav_logout:
                 preferenceManager.saveToken("");
                 preferenceManager.saveUser(null);
+                refreshNavigationView();
                 setFragment(new SearchUserFragment());
                 break;
         }
@@ -157,6 +208,11 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+        refreshNavigationView();
     }
 
     public void setFragment(final Fragment fragment) {

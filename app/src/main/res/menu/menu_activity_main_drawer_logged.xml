@@ -1,29 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group android:checkableBehavior="single">
+    <group
+        android:id="@+id/group_screen"
+        android:checkableBehavior="single">
         <item
             android:id="@+id/nav_profile"
             android:icon="@drawable/ic_action_home"
-            android:title="Profile"/>
+            android:title="@string/profile"/>
         <item
             android:id="@+id/nav_search"
             android:icon="@drawable/ic_action_search"
-            android:title="Search"/>
+            android:title="@string/search"/>
     </group>
-    <group>
+    <group
+        android:id="@+id/group_actions">
         <item
             android:id="@+id/nav_share"
             android:icon="@drawable/ic_menu_share"
-            android:title="Share"/>
+            android:title="@string/share"/>
         <item
             android:id="@+id/nav_rate"
             android:icon="@drawable/ic_action_grade"
-            android:title="Rate"/>
+            android:title="@string/rate"/>
         <item
             android:id="@+id/nav_logout"
             android:icon="@drawable/ic_action_exit"
-            android:title="Logout"/>
+            android:title="@string/logout"/>
     </group>
 
 </menu>

@@ -211,6 +211,6 @@ public class ProfileFragment extends Fragment {
     public void onStop() {
         super.onStop();
         progressLL.setVisibility(View.GONE);
-        mSubscriptions.clear();
+        mSubscriptions.unsubscribe();
     }
 }
